@@ -1,0 +1,19 @@
+{'author': 'Peter Eisenhauer',
+ 'description': 'Detailed FRITZ!Box DSL line metrics via TR-064: SNR margin, '
+                'attenuation, sync rates and line error counters '
+                '(FEC/CRC/HEC, errored seconds, link retrains) with rates '
+                'and configurable thresholds.',
+ 'download_url': 'https://github.com/peisenh/checkmk-fritzbox-dsl',
+ 'files': {'cmk_addons_plugins': ['fritzdsl/agent_based/fritz_dsl.py',
+                                  'fritzdsl/graphing/fritz_dsl.py',
+                                  'fritzdsl/libexec/agent_fritzdsl',
+                                  'fritzdsl/rulesets/check_parameters_fritzdsl.py',
+                                  'fritzdsl/rulesets/check_parameters_fritzdsl_errors.py',
+                                  'fritzdsl/rulesets/special_agent_fritzdsl.py',
+                                  'fritzdsl/server_side_calls/special_agent_fritzdsl.py']},
+ 'name': 'fritzbox_dsl',
+ 'title': 'FRITZ!Box DSL details',
+ 'version': '1.0.0',
+ 'version.min_required': '2.5.0',
+ 'version.packaged': 'cmk-mkp-tool 0.2.0',
+ 'version.usable_until': None}

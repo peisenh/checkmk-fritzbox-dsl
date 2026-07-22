@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Peter Eisenhauer <github@peter-e.de>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Checkmk special agent: detailed FRITZ!Box DSL metrics via TR-064.
+
+Checkmk runs this with the site Python, so fritzconnection must be installed
+into the site Python:  OMD[site]:~$ pip3 install fritzconnection
+
+The output is a dedicated <<<fritz_dsl>>> section attached directly to the
+FRITZ!Box host object (no piggyback needed).
+"""
+
+import argparse
+import sys
+
+from fritzconnection import FritzConnection
+from fritzconnection.core.exceptions import FritzConnectionException
+
+
+def parse_args(argv):
+    p = argparse.ArgumentParser(description="FRITZ!Box DSL special agent")
+    p.add_argument("--host", required=True)
+    p.add_argument("--user", required=True)
+    p.add_argument("--password", required=True)
+    p.add_argument("--port", type=int, default=49000)
+    p.add_argument("--timeout", type=int, default=10)
+    return p.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(argv if argv is not None else sys.argv[1:])
+    try:
+        fc = FritzConnection(
+            address=args.host, port=args.port,
+            user=args.user, password=args.password, timeout=args.timeout,
+        )
+        info = fc.call_action("WANDSLInterfaceConfig1", "GetInfo")
+        try:
+            stats = fc.call_action("WANDSLInterfaceConfig1", "GetStatisticsTotal")
+        except FritzConnectionException:
+            stats = {}
+    except FritzConnectionException as exc:
+        sys.stderr.write("TR-064 error: %s\n" % exc)
+        return 1
+
+    print("<<<fritz_dsl>>>")
+
+    def emit(key, value):
+        print("%s %s" % (key, value))
+
+    # Emit raw values; SNR/attenuation come in 0.1 dB and are scaled in the
+    # check plugin.
+    emit("status", info.get("NewStatus", "Unknown"))
+    emit("sync_down", info.get("NewDownstreamCurrRate", 0))
+    emit("sync_up", info.get("NewUpstreamCurrRate", 0))
+    emit("sync_down_max", info.get("NewDownstreamMaxRate", 0))
+    emit("sync_up_max", info.get("NewUpstreamMaxRate", 0))
+    emit("snr_down", info.get("NewDownstreamNoiseMargin", 0))
+    emit("snr_up", info.get("NewUpstreamNoiseMargin", 0))
+    emit("att_down", info.get("NewDownstreamAttenuation", 0))
+    emit("att_up", info.get("NewUpstreamAttenuation", 0))
+    emit("fec", stats.get("NewFECErrors", 0))
+    emit("crc", stats.get("NewCRCErrors", 0))
+    emit("hec", stats.get("NewHECErrors", 0))
+    emit("errored_secs", stats.get("NewErroredSecs", 0))
+    emit("severely_errored_secs", stats.get("NewSeverelyErroredSecs", 0))
+    emit("link_retrain", stats.get("NewLinkRetrain", 0))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

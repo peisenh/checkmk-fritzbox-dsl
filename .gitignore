@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Checkmk MKP build artifacts
+*.mkp
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
