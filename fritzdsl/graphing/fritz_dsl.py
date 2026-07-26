@@ -18,10 +18,11 @@ from cmk.graphing.v1 import graphs
 
 
 def _single(order: str, metric: str, title: str, filled: bool = False) -> graphs.Graph:
-    name = "fritz_dsl_g%s_%s" % (order, metric)
+    name = f"fritz_dsl_g{order}_{metric}"
+    title_obj = Title(title)  # type: ignore[arg-type]
     if filled:
-        return graphs.Graph(name=name, title=Title(title), compound_lines=[metric])  # type: ignore[arg-type]
-    return graphs.Graph(name=name, title=Title(title), simple_lines=[metric])  # type: ignore[arg-type]
+        return graphs.Graph(name=name, title=title_obj, compound_lines=[metric])
+    return graphs.Graph(name=name, title=title_obj, simple_lines=[metric])
 
 
 # 1) attenuation (filled)

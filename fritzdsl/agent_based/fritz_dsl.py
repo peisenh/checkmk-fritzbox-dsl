@@ -36,6 +36,7 @@ DB_SCALE = 10.0
 
 
 def parse_fritz_dsl(string_table: StringTable) -> Section:
+    """Parse the agent section into a key/value mapping."""
     section: Section = {}
     for row in string_table:
         if len(row) >= 2:
@@ -57,23 +58,27 @@ def _f(section: Section, key: str, default: float = 0.0) -> float:
 
 
 def discover_fritz_dsl(section: Section) -> DiscoveryResult:
+    """Discover a single service when the section is present."""
     if section:
         yield Service()
 
 
 # --- DSL Line: status + sync -------------------------------------------------
 def check_fritz_dsl_status(section: Section) -> CheckResult:
+    """Report link status and current/attainable sync rates."""
     status = section.get("status", "Unknown")
     yield Result(
         state=State.OK if status == "Up" else State.CRIT,
-        summary="Line is %s" % status,
+        summary=f"Line is {status}",
     )
     ds, us = _f(section, "sync_down"), _f(section, "sync_up")
     ds_max, us_max = _f(section, "sync_down_max"), _f(section, "sync_up_max")
     yield Result(
         state=State.OK,
-        summary="Sync down %.1f / up %.1f Mbit/s (max %.1f / %.1f)"
-        % (ds / 1000, us / 1000, ds_max / 1000, us_max / 1000),
+        summary=(
+            f"Sync down {ds / 1000:.1f} / up {us / 1000:.1f} Mbit/s "
+            f"(max {ds_max / 1000:.1f} / {us_max / 1000:.1f})"
+        ),
     )
     yield Metric("sync_down", ds)
     yield Metric("sync_up", us)
@@ -92,20 +97,21 @@ check_plugin_fritz_dsl_status = CheckPlugin(
 
 # --- DSL SNR Margin: with levels ---------------------------------------------
 def check_fritz_dsl_snr(params: Mapping[str, object], section: Section) -> CheckResult:
+    """Check the SNR margin down/up against the configured lower levels."""
     levels = params.get("snr_lower")
     yield from check_levels(
         _f(section, "snr_down") / DB_SCALE,
         levels_lower=levels,
         metric_name="snr_down",
         label="SNR margin down",
-        render_func=lambda v: "%.1f dB" % v,
+        render_func=lambda v: f"{v:.1f} dB",
     )
     yield from check_levels(
         _f(section, "snr_up") / DB_SCALE,
         levels_lower=levels,
         metric_name="snr_up",
         label="SNR margin up",
-        render_func=lambda v: "%.1f dB" % v,
+        render_func=lambda v: f"{v:.1f} dB",
     )
 
 
@@ -124,6 +130,7 @@ check_plugin_fritz_dsl_snr = CheckPlugin(
 def check_fritz_dsl_errors(
     params: Mapping[str, object], section: Section
 ) -> CheckResult:
+    """Report attenuation and derive per-second rates from the error counters."""
     value_store = get_value_store()
     now = time.time()
 
@@ -131,7 +138,7 @@ def check_fritz_dsl_errors(
     att_u = _f(section, "att_up") / DB_SCALE
     yield Result(
         state=State.OK,
-        summary="Attenuation down %.1f / up %.1f dB" % (att_d, att_u),
+        summary=f"Attenuation down {att_d:.1f} / up {att_u:.1f} dB",
     )
     # 1) attenuation first
     yield Metric("att_down", att_d)
@@ -150,7 +157,7 @@ def check_fritz_dsl_errors(
         try:
             # raise_overflow=False: a resync resets the counter to 0, which
             # then yields 0 instead of a negative spike.
-            rates[key] = get_rate(value_store, "fritz_dsl.%s" % key, now,
+            rates[key] = get_rate(value_store, f"fritz_dsl.{key}", now,
                                   _f(section, key), raise_overflow=False)
         except GetRateError:
             rates[key] = None
@@ -161,14 +168,14 @@ def check_fritz_dsl_errors(
         rate = rates[key]
         if rate is None:
             continue
-        rate_metric = "%s_rate" % key
+        rate_metric = f"{key}_rate"
         if key in rated:
             yield from check_levels(
                 rate,
                 levels_upper=params.get(rate_metric, ("no_levels", None)),
                 metric_name=rate_metric,
-                label="%s rate" % key.upper(),
-                render_func=lambda v: "%.2f/s" % v,
+                label=f"{key.upper()} rate",
+                render_func=lambda v: f"{v:.2f}/s",
                 notice_only=True,  # OK in details only, WARN/CRIT in summary
             )
         else:
@@ -183,12 +190,12 @@ def check_fritz_dsl_errors(
 
     yield Result(
         state=State.OK,
-        notice="Totals since resync - CRC %d / FEC %d / HEC %d, "
-        "ES %d / SES %d, retrains %d"
-        % (
-            int(_f(section, "crc")), int(_f(section, "fec")), int(_f(section, "hec")),
-            int(_f(section, "errored_secs")), int(_f(section, "severely_errored_secs")),
-            int(_f(section, "link_retrain")),
+        notice=(
+            f"Totals since resync - CRC {int(_f(section, 'crc'))} / "
+            f"FEC {int(_f(section, 'fec'))} / HEC {int(_f(section, 'hec'))}, "
+            f"ES {int(_f(section, 'errored_secs'))} / "
+            f"SES {int(_f(section, 'severely_errored_secs'))}, "
+            f"retrains {int(_f(section, 'link_retrain'))}"
         ),
     )
 

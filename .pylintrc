@@ -1,0 +1,10 @@
+[MAIN]
+max-line-length = 100
+
+[MESSAGES CONTROL]
+# cmk.*, pydantic and fritzconnection are provided by the Checkmk site and are
+# not importable at lint time, so import-error is expected and not actionable.
+# too-few-public-methods is a false positive for the pydantic parameter model.
+disable =
+    import-error,
+    too-few-public-methods

@@ -18,6 +18,7 @@ from fritzconnection.core.exceptions import FritzConnectionException
 
 
 def parse_args(argv):
+    """Parse command-line arguments."""
     p = argparse.ArgumentParser(description="FRITZ!Box DSL special agent")
     p.add_argument("--host", required=True)
     p.add_argument("--user", required=True)
@@ -28,6 +29,7 @@ def parse_args(argv):
 
 
 def main(argv=None):
+    """Query the FRITZ!Box and print the fritz_dsl section."""
     args = parse_args(argv if argv is not None else sys.argv[1:])
     try:
         fc = FritzConnection(
@@ -40,13 +42,14 @@ def main(argv=None):
         except FritzConnectionException:
             stats = {}
     except FritzConnectionException as exc:
-        sys.stderr.write("TR-064 error: %s\n" % exc)
+        sys.stderr.write(f"TR-064 error: {exc}\n")
         return 1
 
     print("<<<fritz_dsl>>>")
 
     def emit(key, value):
-        print("%s %s" % (key, value))
+        """Print one section line."""
+        print(f"{key} {value}")
 
     # Emit raw values; SNR/attenuation come in 0.1 dB and are scaled in the
     # check plugin.
