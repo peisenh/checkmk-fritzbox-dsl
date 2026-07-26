@@ -16,6 +16,8 @@ from cmk.server_side_calls.v1 import (
 
 
 class Params(BaseModel):
+    """Validated rule parameters for the special agent."""
+
     user: str
     password: Secret
     port: int = 49000
