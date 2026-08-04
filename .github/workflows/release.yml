@@ -1,0 +1,47 @@
+name: Release
+
+# Triggered by pushing a version tag (e.g. v1.1.0).
+# Version comes from the tag; release notes come from the matching
+# CHANGELOG.md section. Self-contained: only gh (preinstalled on the
+# runners), no third-party actions beyond actions/checkout.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # required to create the release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"        # v1.1.0 -> 1.1.0
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { f=1; next }   # version header: start printing
+            f && /^## \[/            { exit }         # next version block: stop
+            f                        { print }
+          ' CHANGELOG.md > release-body.md
+          if [ ! -s release-body.md ]; then
+            echo "No CHANGELOG section found for $VERSION." >&2
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Mark semver pre-releases (tag contains '-', e.g. v1.1.0-rc1)
+          case "$GITHUB_REF_NAME" in
+            *-*) PRE="--prerelease" ;;
+            *)   PRE="" ;;
+          esac
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-body.md \
+            $PRE
