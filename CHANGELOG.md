@@ -5,9 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+## [1.0.3] - 2026-08-04
+### Fixed
+- Documented minimum Checkmk version now matches the manifest: both require
+  2.5. The README previously stated 2.3, which was never tested.
+
+### Changed
+- Bump manifest package version to 1.0.3.
+
 ## [1.0.2] - 2026-08-04
 ### Added
-- Add changelog and automated release workflow.
+- Changelog and an automated release workflow (release notes are derived
+  from this file on tag push).
 
 ## [1.0.1] - 2026-07-26
 ### Added
@@ -25,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sync rates and the line error counters (FEC/CRC/HEC, errored seconds,
   link retrains).
 
-[Unreleased]: https://github.com/peisenh/checkmk-fritzbox-dsl/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/peisenh/checkmk-fritzbox-dsl/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/peisenh/checkmk-fritzbox-dsl/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/peisenh/checkmk-fritzbox-dsl/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/peisenh/checkmk-fritzbox-dsl/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/peisenh/checkmk-fritzbox-dsl/releases/tag/v1.0.0

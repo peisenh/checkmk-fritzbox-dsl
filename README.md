@@ -23,7 +23,7 @@ configurable upper levels.
 
 ## Requirements
 
-- Checkmk 2.3 or newer (developed and run on 2.5).
+- Checkmk 2.5 or newer (developed and run on 2.5).
 - Python package [`fritzconnection`](https://pypi.org/project/fritzconnection/)
   in the **site** Python.
 - A FRITZ!Box with TR-064 enabled and a dedicated user.
