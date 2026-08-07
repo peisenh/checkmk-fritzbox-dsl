@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Two-step release automation: `prepare-release.sh X.Y.Z` turns the Unreleased
+  changelog section into a dated version block, refreshes the compare links,
+  and commits/pushes it; `release.sh` then tags and pushes. Splitting the
+  changelog push from the tag push keeps the tag push a clean, isolated event
+  so the release workflow triggers reliably.
 
 ## [1.0.3] - 2026-08-04
 ### Fixed
