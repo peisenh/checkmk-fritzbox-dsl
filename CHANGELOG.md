@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   changelog push from the tag push keeps the tag push a clean, isolated event
   so the release workflow triggers reliably.
 
+### Changed
+- The release workflow now runs on both GitHub Actions and Gitea Actions. It
+  creates the release via the platform's REST API with `curl` instead of the
+  `gh` CLI, detecting the platform from `GITHUB_SERVER_URL` and switching the
+  API base URL and auth header accordingly. The two APIs share the same release
+  endpoint and JSON fields.
+
 ## [1.0.3] - 2026-08-04
 ### Fixed
 - Documented minimum Checkmk version now matches the manifest: both require
