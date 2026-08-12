@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `gh` CLI, detecting the platform from `GITHUB_SERVER_URL` and switching the
   API base URL and auth header accordingly. The two APIs share the same release
   endpoint and JSON fields.
+- Reworked the README installation flow for clarity: `fritzconnection` is now
+  documented as a plain `pip3 install` as the site user that lands in `~/local`
+  on the persistent `/omd/sites` volume, so a normal Checkmk Docker setup needs
+  no custom image (the Dockerfile is an optional alternative). Plugin install
+  is now split into two options (copy the source tree, or install a prebuilt
+  MKP), and the dependency is flagged as required for the MKP path too since
+  the package does not bundle it.
 
 ## [1.0.3] - 2026-08-04
 ### Fixed

@@ -44,30 +44,48 @@ login.
 
 ## Installation
 
+Installing has two parts: the Python dependency (always required) and the
+plugin itself (either copy the source tree, or install a prebuilt MKP).
+
 ### 1. Install the Python dependency (site Python)
 
+Required for **every** install method — the plugin calls `fritzconnection`, and
+the MKP does not bundle it.
+
+Run this **as the site user** (e.g. `omd su <site>`, or
+`docker exec -it -u <site> <container> bash` for a Docker install):
+
 ```bash
-# as the site user
 pip3 install fritzconnection
 python3 -c "import fritzconnection; print(fritzconnection.__file__)"
 ```
 
-The path should live under `~/local/lib/python3/`, i.e. on persistent storage.
+The import check must print a path under `~/local/lib/python3/`, e.g.
+`/omd/sites/<site>/local/lib/python3/fritzconnection/__init__.py`.
 
-> **Docker note:** In the official Checkmk container only `/omd/sites` is a
-> persistent volume. A plain `pip3 install` into the version directory is lost
-> on container recreation/upgrade. The site pip is pre-configured with a
-> `--target` inside `~/local/`, so `pip3 install fritzconnection` (no `--user`)
-> lands on the volume. For a fully reproducible setup, bake it into a custom
-> image instead:
+Why that location matters: the site's `pip3` is pre-configured to install into
+`~/local/`, and that tree lives on the persistent `/omd/sites` volume.
+**This is all a normal Checkmk Docker setup needs** — the package survives
+container recreation and upgrades, and you do **not** have to build a custom
+image. Do not add `--user` (the site pip already sets an install target, so the
+two conflict), and do not install into the version directory under
+`/omd/versions/`, which is not persistent.
+
+After a major Checkmk upgrade (e.g. 2.5 → 2.6) the site Python's minor version
+may change; re-run the import check and `pip3 install fritzconnection` again if
+it no longer resolves.
+
+> **Optional — immutable image builds only:** to bake the dependency into the
+> image instead of installing at runtime (an alternative, not a requirement):
 > ```dockerfile
 > FROM checkmk/check-mk-raw:2.5.0p4
 > RUN /omd/versions/default/bin/pip3 install fritzconnection
 > ```
 
-### 2. Deploy the plugin
+### 2. Install the plugin
 
-Copy the `fritzdsl/` family into your site:
+**Option A — from a clone of this repository.** Copy the plugin family into the
+site:
 
 ```bash
 cp -r fritzdsl ~/local/lib/python3/cmk_addons/plugins/
@@ -77,7 +95,15 @@ cmk -R                      # reload core so the check plugins load
 omd reload apache           # reload GUI for rulesets and graphs
 ```
 
-Or build an MKP for clean distribution (see *Packaging as MKP* below).
+**Option B — from a prebuilt MKP** (e.g. a release asset). Install it in the
+GUI under *Setup → Extension packages*, or on the CLI as the site user:
+
+```bash
+mkp add fritzbox_dsl-<version>.mkp
+mkp enable fritzbox_dsl <version>
+```
+
+Building an MKP yourself is described in *Packaging as MKP* below.
 
 ## Configuration
 
@@ -150,7 +176,8 @@ cp packaging/fritzbox_dsl.manifest ~/tmp/check_mk/fritzbox_dsl.manifest
 mkp package ~/tmp/check_mk/fritzbox_dsl.manifest
 ```
 
-The resulting `fritzbox_dsl-1.0.0.mkp` lands in `~/var/check_mk/packages_local/`.
+The resulting `fritzbox_dsl-<version>.mkp` (version from the manifest) lands
+in `~/var/check_mk/packages_local/`.
 `version.packaged` is overwritten by the tooling; adjust `version` and
 `version.min_required` in the manifest as needed.
 
