@@ -10,13 +10,3 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "ci"
-
-  # Python dependencies
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "deps"
